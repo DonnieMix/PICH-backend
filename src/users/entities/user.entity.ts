@@ -1,0 +1,68 @@
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+} from 'typeorm';
+import { Exclude } from 'class-transformer';
+import { Card } from '../../cards/entities/card.entity';
+
+@Entity('users')
+export class User {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ unique: true })
+  email: string;
+
+  @Column()
+  firstName: string;
+
+  @Column()
+  lastName: string;
+
+  @Column({ nullable: true })
+  nickname: string;
+
+  @Column({ nullable: true })
+  phone: string;
+
+  @Column({ nullable: true })
+  avatar: string;
+
+  @Column({ nullable: true })
+  gender: string;
+
+  @Column({ nullable: true })
+  birthDate: Date;
+
+  @Column({ default: 'basic' })
+  subscriptionPlan: string;
+
+  @Column({ nullable: true })
+  subscriptionExpiresAt: Date;
+
+  @Column({ default: true })
+  isActive: boolean;
+
+  @Column({ nullable: true })
+  walletAddress: string;
+
+  @Column({ default: 0 })
+  tokenBalance: number;
+
+  @Column()
+  @Exclude()
+  password: string;
+
+  @OneToMany(() => Card, (card) => card.user)
+  cards: Card[];
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}
