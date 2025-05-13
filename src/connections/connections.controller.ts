@@ -5,17 +5,18 @@ import {
   Body,
   Param,
   Delete,
-  UseGuards,
   Patch,
+  UseGuards,
 } from '@nestjs/common';
-import { ConnectionsService } from './connections.service';
-import { CreateConnectionDto } from './dto/create-connection.dto';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import type { ConnectionsService } from './connections.service';
+import type { CreateConnectionDto } from './dto/create-connection.dto';
+import type { UpdateNotesDto } from './dto/update-notes.dto';
 import { GetUser } from '../common/decorators/get-user.decorator';
-import { User } from '../users/entities/user.entity';
+import type { User } from '../users/entities/user.entity';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @Controller('connections')
-//@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 export class ConnectionsController {
   constructor(private readonly connectionsService: ConnectionsService) {}
 
@@ -32,6 +33,11 @@ export class ConnectionsController {
     return this.connectionsService.findAll(user);
   }
 
+  @Get('friends')
+  findFriends(@GetUser() user: User) {
+    return this.connectionsService.findFriends(user);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string, @GetUser() user: User) {
     return this.connectionsService.findOne(id, user);
@@ -45,10 +51,10 @@ export class ConnectionsController {
   @Patch(':id/notes')
   updateNotes(
     @Param('id') id: string,
-    @Body('notes') notes: string,
+    @Body() updateNotesDto: UpdateNotesDto,
     @GetUser() user: User,
   ) {
-    return this.connectionsService.updateNotes(id, notes, user);
+    return this.connectionsService.updateNotes(id, updateNotesDto, user);
   }
 
   @Delete(':id')

@@ -8,30 +8,26 @@ import {
   Delete,
   UseGuards,
 } from '@nestjs/common';
-import { CardsService } from './cards.service';
-import { CreateCardDto } from './dto/create-card.dto';
-import { UpdateCardDto } from './dto/update-card.dto';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import type { CardsService } from './cards.service';
+import type { CreateCardDto } from './dto/create-card.dto';
+import type { UpdateCardDto } from './dto/update-card.dto';
 import { GetUser } from '../common/decorators/get-user.decorator';
-import { User } from '../users/entities/user.entity';
+import type { User } from '../users/entities/user.entity';
 
 @Controller('cards')
 export class CardsController {
   constructor(private readonly cardsService: CardsService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createCardDto: CreateCardDto, @GetUser() user: User) {
     return this.cardsService.create(createCardDto, user);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@GetUser() user: User) {
     return this.cardsService.findAll(user);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string, @GetUser() user: User) {
     return this.cardsService.findOne(id, user);
@@ -42,7 +38,6 @@ export class CardsController {
     return this.cardsService.findOnePublic(id);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(
     @Param('id') id: string,
@@ -52,7 +47,16 @@ export class CardsController {
     return this.cardsService.update(id, updateCardDto, user);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @Patch(':id/toggle-prime')
+  togglePrime(@Param('id') id: string, @GetUser() user: User) {
+    return this.cardsService.togglePrime(id, user);
+  }
+
+  @Patch(':id/toggle-wallet')
+  toggleWallet(@Param('id') id: string, @GetUser() user: User) {
+    return this.cardsService.toggleWallet(id, user);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string, @GetUser() user: User) {
     return this.cardsService.remove(id, user);

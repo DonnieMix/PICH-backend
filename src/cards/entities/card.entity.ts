@@ -6,10 +6,8 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  OneToMany,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { Connection } from '../../connections/entities/connection.entity';
 
 export enum CardType {
   BAC = 'BAC', // Business Automatic Card
@@ -79,15 +77,18 @@ export class Card {
   @Column({ nullable: true })
   blockchainId: string;
 
+  @Column({ default: false })
+  isMainCard: boolean;
+
+  @Column({ default: false })
+  isInWallet: boolean;
+
   @ManyToOne(() => User, (user) => user.cards)
   @JoinColumn({ name: 'userId' })
   user: User;
 
   @Column()
   userId: string;
-
-  @OneToMany(() => Connection, (connection) => connection.card)
-  connections: Connection[];
 
   @CreateDateColumn()
   createdAt: Date;

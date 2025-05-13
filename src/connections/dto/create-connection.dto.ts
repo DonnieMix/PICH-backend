@@ -1,13 +1,9 @@
-import { IsNotEmpty, IsString, IsOptional, IsBoolean } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
 
 export class CreateConnectionDto {
   @IsString()
   @IsNotEmpty()
-  cardId: string;
-
-  @IsBoolean()
-  @IsOptional()
-  isFavorite?: boolean;
+  scannedUserId: string;
 
   @IsString()
   @IsOptional()

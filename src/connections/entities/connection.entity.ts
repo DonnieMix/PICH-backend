@@ -8,32 +8,51 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { Card } from '../../cards/entities/card.entity';
 
 @Entity('connections')
 export class Connection {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  // The first user in the connection
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'userId' })
-  user: User;
+  @JoinColumn({ name: 'user1Id' })
+  user1: User;
 
   @Column()
-  userId: string;
+  user1Id: string;
 
-  @ManyToOne(() => Card, (card) => card.connections)
-  @JoinColumn({ name: 'cardId' })
-  card: Card;
+  // The second user in the connection
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'user2Id' })
+  user2: User;
 
   @Column()
-  cardId: string;
+  user2Id: string;
 
-  @Column({ default: false })
-  isFavorite: boolean;
-
+  // Notes from user1 about user2
   @Column({ nullable: true })
-  notes: string;
+  user1Notes: string;
+
+  // Notes from user2 about user1
+  @Column({ nullable: true })
+  user2Notes: string;
+
+  // Whether user1 has favorited user2
+  @Column({ default: false })
+  user1FavoritedUser2: boolean;
+
+  // Whether user2 has favorited user1
+  @Column({ default: false })
+  user2FavoritedUser1: boolean;
+
+  // The date when the connection was established
+  @Column()
+  connectionDate: Date;
+
+  // The date of the last interaction between the users
+  @Column({ nullable: true })
+  lastInteractionDate: Date;
 
   @CreateDateColumn()
   createdAt: Date;

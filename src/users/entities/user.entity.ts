@@ -60,6 +60,9 @@ export class User {
   @OneToMany(() => Card, (card) => card.user)
   cards: Card[];
 
+  @Column({ nullable: true })
+  mainCardId: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

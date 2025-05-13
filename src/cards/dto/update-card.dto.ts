@@ -78,4 +78,12 @@ export class UpdateCardDto {
   @IsString()
   @IsOptional()
   blockchainId?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isMainCard?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  isInWallet?: boolean;
 }

@@ -8,12 +8,11 @@ import {
   Delete,
   UseGuards,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import type { UsersService } from './users.service';
+import type { CreateUserDto } from './dto/create-user.dto';
+import type { UpdateUserDto } from './dto/update-user.dto';
 import { GetUser } from '../common/decorators/get-user.decorator';
-import { User } from './entities/user.entity';
+import type { User } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -24,31 +23,31 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  //@UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
     return this.usersService.findAll();
   }
 
-  //@UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@GetUser() user: User) {
     return user;
   }
 
-  //@UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }
 
-  //@UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 
-  //@UseGuards(JwtAuthGuard)
+  @Patch(':id/main-card/:cardId')
+  setMainCard(@Param('id') id: string, @Param('cardId') cardId: string) {
+    return this.usersService.setMainCard(id, cardId);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);

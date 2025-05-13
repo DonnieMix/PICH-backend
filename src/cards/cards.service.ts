@@ -4,17 +4,17 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 import { Card } from './entities/card.entity';
-import { CreateCardDto } from './dto/create-card.dto';
-import { UpdateCardDto } from './dto/update-card.dto';
-import { User } from '../users/entities/user.entity';
+import type { CreateCardDto } from './dto/create-card.dto';
+import type { UpdateCardDto } from './dto/update-card.dto';
+import type { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class CardsService {
   constructor(
     @InjectRepository(Card)
-    private cardsRepository: Repository<Card>,
+    private readonly cardsRepository: Repository<Card>,
   ) {}
 
   async create(createCardDto: CreateCardDto, user: User): Promise<Card> {
@@ -81,6 +81,22 @@ export class CardsService {
     const card = await this.findOne(id, user);
 
     Object.assign(card, updateCardDto);
+
+    return this.cardsRepository.save(card);
+  }
+
+  async togglePrime(id: string, user: User): Promise<Card> {
+    const card = await this.findOne(id, user);
+
+    card.isPrime = !card.isPrime;
+
+    return this.cardsRepository.save(card);
+  }
+
+  async toggleWallet(id: string, user: User): Promise<Card> {
+    const card = await this.findOne(id, user);
+
+    card.isInWallet = !card.isInWallet;
 
     return this.cardsRepository.save(card);
   }

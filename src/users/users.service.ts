@@ -1,15 +1,14 @@
 import {
-  Injectable,
   NotFoundException,
   ConflictException,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import type { CreateUserDto } from './dto/create-user.dto';
+import type { UpdateUserDto } from './dto/update-user.dto';
 
 // Define a more specific interface for Postgres errors
 interface PostgresError {
@@ -22,7 +21,6 @@ interface PostgresError {
 // Define a more general error type for the type guard
 type PossibleError = Error | PostgresError;
 
-@Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
@@ -69,7 +67,10 @@ export class UsersService {
   }
 
   async findOne(id: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { id } });
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: ['cards'],
+    });
     if (!user) {
       throw new NotFoundException(`User with ID "${id}" not found`);
     }
@@ -77,7 +78,10 @@ export class UsersService {
   }
 
   async findByEmail(email: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { email } });
+    const user = await this.usersRepository.findOne({
+      where: { email },
+      relations: ['cards'],
+    });
     if (!user) {
       throw new NotFoundException(`User with email "${email}" not found`);
     }
@@ -98,6 +102,21 @@ export class UsersService {
     const updatedUser = await this.usersRepository.save(user);
 
     return updatedUser;
+  }
+
+  async setMainCard(userId: string, cardId: string): Promise<User> {
+    const user = await this.findOne(userId);
+
+    // Check if the card belongs to the user
+    const cardBelongsToUser = user.cards.some((card) => card.id === cardId);
+    if (!cardBelongsToUser) {
+      throw new NotFoundException(
+        `Card with ID "${cardId}" not found for this user`,
+      );
+    }
+
+    user.mainCardId = cardId;
+    return this.usersRepository.save(user);
   }
 
   async remove(id: string): Promise<void> {
