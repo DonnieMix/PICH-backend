@@ -2,6 +2,7 @@ import {
   NotFoundException,
   ConflictException,
   InternalServerErrorException,
+  Injectable,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import type { Repository } from 'typeorm';
@@ -21,6 +22,7 @@ interface PostgresError {
 // Define a more general error type for the type guard
 type PossibleError = Error | PostgresError;
 
+@Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)

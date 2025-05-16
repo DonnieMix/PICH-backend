@@ -7,8 +7,9 @@ import {
   Param,
   Delete,
   UseGuards,
+  Inject,
 } from '@nestjs/common';
-import type { UsersService } from './users.service';
+import { UsersService } from './users.service';
 import type { CreateUserDto } from './dto/create-user.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
 import { GetUser } from '../common/decorators/get-user.decorator';
@@ -16,7 +17,10 @@ import type { User } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    @Inject(UsersService)
+    private readonly usersService: UsersService,
+  ) {}
 
   @Post()
   create(@Body() createUserDto: CreateUserDto) {

@@ -1,15 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import * as QRCode from 'qrcode';
-import type { ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class QrService {
-  constructor(private configService: ConfigService) {}
+  constructor(
+    @Inject(ConfigService)
+    private configService: ConfigService,
+  ) {}
 
   async generateUserQR(userId: string): Promise<string> {
     const baseUrl = this.configService.get<string>(
       'FRONTEND_URL',
-      'https://pich.app',
+      'http://localhost:3000',
     );
     const connectUrl = `${baseUrl}/connect/${userId}`;
 
@@ -19,7 +22,7 @@ export class QrService {
       margin: 1,
       width: 300,
       color: {
-        dark: '#a39de8', // Using design token from Figma
+        dark: '#000000', // Using design token from Figma
         light: '#FFFFFF', // White background
       },
     });

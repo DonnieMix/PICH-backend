@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   InternalServerErrorException,
+  Inject,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import type { Repository } from 'typeorm';
@@ -10,13 +11,14 @@ import { Connection } from './entities/connection.entity';
 import type { CreateConnectionDto } from './dto/create-connection.dto';
 import type { UpdateNotesDto } from './dto/update-notes.dto';
 import type { User } from '../users/entities/user.entity';
-import type { UsersService } from '../users/users.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ConnectionsService {
   constructor(
     @InjectRepository(Connection)
     private readonly connectionsRepository: Repository<Connection>,
+    @Inject(UsersService)
     private readonly usersService: UsersService,
   ) {}
 
@@ -50,7 +52,6 @@ export class ConnectionsService {
     const connection = this.connectionsRepository.create({
       user1Id: currentUser.id,
       user2Id: scannedUser.id,
-      user1Notes: createConnectionDto.notes || undefined,
       connectionDate: new Date(),
       lastInteractionDate: new Date(),
     });

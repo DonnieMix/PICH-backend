@@ -41,25 +41,25 @@ export class Card {
   @Column()
   nickname: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: null })
   avatar: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: null })
   phone: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: null })
   email: string;
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ type: 'json', nullable: true, default: null })
   social: Record<string, string>;
 
   @Column({ default: false })
   isPrime: boolean;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: null })
   bio: string;
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ type: 'json', nullable: true, default: null })
   location: {
     country?: string;
     city?: string;
@@ -74,7 +74,7 @@ export class Card {
   })
   category: CardCategory;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: null })
   blockchainId: string;
 
   @Column({ default: false })

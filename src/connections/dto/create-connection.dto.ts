@@ -4,8 +4,4 @@ export class CreateConnectionDto {
   @IsString()
   @IsNotEmpty()
   scannedUserId: string;
-
-  @IsString()
-  @IsOptional()
-  notes?: string;
 }

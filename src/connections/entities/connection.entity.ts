@@ -31,11 +31,11 @@ export class Connection {
   user2Id: string;
 
   // Notes from user1 about user2
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: null })
   user1Notes: string;
 
   // Notes from user2 about user1
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: null })
   user2Notes: string;
 
   // Whether user1 has favorited user2
@@ -51,7 +51,7 @@ export class Connection {
   connectionDate: Date;
 
   // The date of the last interaction between the users
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: null })
   lastInteractionDate: Date;
 
   @CreateDateColumn()
