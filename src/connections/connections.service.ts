@@ -6,52 +6,70 @@ import {
   Inject,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import type { Repository } from 'typeorm';
+import { type Repository, In } from 'typeorm';
 import { Connection } from './entities/connection.entity';
 import type { CreateConnectionDto } from './dto/create-connection.dto';
 import type { UpdateNotesDto } from './dto/update-notes.dto';
 import type { User } from '../users/entities/user.entity';
-import { UsersService } from '../users/users.service';
+import type { Card } from '../cards/entities/card.entity';
+import { CardsService } from '../cards/cards.service';
 
 @Injectable()
 export class ConnectionsService {
   constructor(
     @InjectRepository(Connection)
     private readonly connectionsRepository: Repository<Connection>,
-    @Inject(UsersService)
-    private readonly usersService: UsersService,
+    @Inject(CardsService)
+    private readonly cardsService: CardsService,
   ) {}
 
   async create(
     createConnectionDto: CreateConnectionDto,
     currentUser: User,
   ): Promise<Connection> {
-    // Check if the scanned user exists
-    const scannedUser = await this.usersService.findOne(
-      createConnectionDto.scannedUserId,
+    // Get the scanned card
+    const scannedCard = await this.cardsService.findOnePublic(
+      createConnectionDto.scannedCardId,
     );
 
+    // Get the current user's main card or first card if no main card is set
+    let userCard: Card;
+    if (currentUser.mainCardId) {
+      userCard = await this.cardsService.findOne(
+        currentUser.mainCardId,
+        currentUser,
+      );
+    } else {
+      const userCards = await this.cardsService.findAll(currentUser);
+      if (userCards.length === 0) {
+        throw new ConflictException(
+          'You need to create a card before connecting with others',
+        );
+      }
+      userCard = userCards[0];
+    }
+
     // Ensure users aren't connecting with themselves
-    if (currentUser.id === scannedUser.id) {
-      throw new ConflictException('Cannot connect with yourself');
+    if (userCard.userId === scannedCard.userId) {
+      throw new ConflictException('Cannot connect with your own card');
     }
 
     // Check if connection already exists (in either direction)
-    const existingConnection = await this.findConnectionBetweenUsers(
-      currentUser.id,
-      scannedUser.id,
+    const existingConnection = await this.findConnectionBetweenCards(
+      userCard.id,
+      scannedCard.id,
     );
 
     if (existingConnection) {
       throw new ConflictException(
-        'Connection already exists between these users',
+        'Connection already exists between these cards',
       );
     }
 
-    // Create new mutual connection
+    // Create new connection
     const connection = this.connectionsRepository.create({
-      user1Id: currentUser.id,
-      user2Id: scannedUser.id,
+      card1Id: userCard.id,
+      card2Id: scannedCard.id,
       connectionDate: new Date(),
       lastInteractionDate: new Date(),
     });
@@ -62,7 +80,7 @@ export class ConnectionsService {
     // Return the connection with relations loaded
     const savedConnection = await this.connectionsRepository.findOne({
       where: { id: connection.id },
-      relations: ['user1', 'user2'],
+      relations: ['card1', 'card2'],
     });
 
     // Handle the case where the connection might not be found (should never happen)
@@ -74,32 +92,41 @@ export class ConnectionsService {
   }
 
   async findAll(user: User): Promise<Connection[]> {
-    // Find all connections where the user is either user1 or user2
+    // Get all user's cards
+    const userCards = await this.cardsService.findAll(user);
+    const userCardIds = userCards.map((card) => card.id);
+
+    // Find all connections where any of the user's cards is either card1 or card2
     return this.connectionsRepository.find({
-      where: [{ user1Id: user.id }, { user2Id: user.id }],
-      relations: ['user1', 'user2'],
+      where: [{ card1Id: In(userCardIds) }, { card2Id: In(userCardIds) }],
+      relations: ['card1', 'card2'],
       order: { lastInteractionDate: 'DESC' },
     });
   }
 
-  async findFriends(user: User): Promise<User[]> {
+  async findConnectedCards(user: User): Promise<Card[]> {
     const connections = await this.findAll(user);
+    const userCards = await this.cardsService.findAll(user);
+    const userCardIds = userCards.map((card) => card.id);
 
-    // For each connection, return the other user
+    // For each connection, return the other card
     return connections.map((connection) => {
-      return connection.user1Id === user.id
-        ? connection.user2
-        : connection.user1;
+      return userCardIds.includes(connection.card1Id)
+        ? connection.card2
+        : connection.card1;
     });
   }
 
   async findOne(id: string, user: User): Promise<Connection> {
+    const userCards = await this.cardsService.findAll(user);
+    const userCardIds = userCards.map((card) => card.id);
+
     const connection = await this.connectionsRepository.findOne({
       where: [
-        { id, user1Id: user.id },
-        { id, user2Id: user.id },
+        { id, card1Id: In(userCardIds) },
+        { id, card2Id: In(userCardIds) },
       ],
-      relations: ['user1', 'user2'],
+      relations: ['card1', 'card2'],
     });
 
     if (!connection) {
@@ -109,14 +136,14 @@ export class ConnectionsService {
     return connection;
   }
 
-  async findConnectionBetweenUsers(
-    user1Id: string,
-    user2Id: string,
+  async findConnectionBetweenCards(
+    card1Id: string,
+    card2Id: string,
   ): Promise<Connection | null> {
     return this.connectionsRepository.findOne({
       where: [
-        { user1Id, user2Id },
-        { user1Id: user2Id, user2Id: user1Id },
+        { card1Id, card2Id },
+        { card1Id: card2Id, card2Id: card1Id },
       ],
     });
   }
@@ -127,12 +154,14 @@ export class ConnectionsService {
     user: User,
   ): Promise<Connection> {
     const connection = await this.findOne(id, user);
+    const userCards = await this.cardsService.findAll(user);
+    const userCardIds = userCards.map((card) => card.id);
 
-    // Update notes based on which user is updating
-    if (connection.user1Id === user.id) {
-      connection.user1Notes = updateNotesDto.notes;
+    // Update notes based on which card belongs to the user
+    if (userCardIds.includes(connection.card1Id)) {
+      connection.card1Notes = updateNotesDto.notes;
     } else {
-      connection.user2Notes = updateNotesDto.notes;
+      connection.card2Notes = updateNotesDto.notes;
     }
 
     connection.lastInteractionDate = new Date();
@@ -142,12 +171,14 @@ export class ConnectionsService {
 
   async toggleFavorite(id: string, user: User): Promise<Connection> {
     const connection = await this.findOne(id, user);
+    const userCards = await this.cardsService.findAll(user);
+    const userCardIds = userCards.map((card) => card.id);
 
-    // Toggle favorite status based on which user is toggling
-    if (connection.user1Id === user.id) {
-      connection.user1FavoritedUser2 = !connection.user1FavoritedUser2;
+    // Toggle favorite status based on which card belongs to the user
+    if (userCardIds.includes(connection.card1Id)) {
+      connection.card1FavoritedCard2 = !connection.card1FavoritedCard2;
     } else {
-      connection.user2FavoritedUser1 = !connection.user2FavoritedUser1;
+      connection.card2FavoritedCard1 = !connection.card2FavoritedCard1;
     }
 
     connection.lastInteractionDate = new Date();
@@ -160,26 +191,28 @@ export class ConnectionsService {
     await this.connectionsRepository.remove(connection);
   }
 
-  // Get notes for a specific connection from the perspective of the current user
-  getNotes(connection: Connection, userId: string): string | undefined {
-    if (connection.user1Id === userId) {
-      return connection.user1Notes;
+  // Get notes for a specific connection from the perspective of the current user's card
+  getNotes(connection: Connection, userCardIds: string[]): string | null {
+    if (userCardIds.includes(connection.card1Id)) {
+      return connection.card1Notes;
     } else {
-      return connection.user2Notes;
+      return connection.card2Notes;
     }
   }
 
-  // Check if the current user has favorited the other user in this connection
-  hasFavorited(connection: Connection, userId: string): boolean {
-    if (connection.user1Id === userId) {
-      return connection.user1FavoritedUser2;
+  // Check if the current user's card has favorited the other card in this connection
+  hasFavorited(connection: Connection, userCardIds: string[]): boolean {
+    if (userCardIds.includes(connection.card1Id)) {
+      return connection.card1FavoritedCard2;
     } else {
-      return connection.user2FavoritedUser1;
+      return connection.card2FavoritedCard1;
     }
   }
 
-  // Get the other user in a connection
-  getOtherUser(connection: Connection, userId: string): User {
-    return connection.user1Id === userId ? connection.user2 : connection.user1;
+  // Get the other card in a connection
+  getOtherCard(connection: Connection, userCardIds: string[]): Card {
+    return userCardIds.includes(connection.card1Id)
+      ? connection.card2
+      : connection.card1;
   }
 }

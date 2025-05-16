@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { QrService } from './qr.service';
 import { QrController } from './qr.controller';
+import { CardsModule } from '../cards/cards.module';
 
 @Module({
-  imports: [ConfigModule],
+  imports: [CardsModule],
   controllers: [QrController],
   providers: [QrService],
   exports: [QrService],

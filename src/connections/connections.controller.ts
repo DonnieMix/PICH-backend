@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Post,
-  Body,
   Param,
   Delete,
   Patch,
@@ -10,7 +9,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { ConnectionsService } from './connections.service';
-import { CreateConnectionDto } from './dto/create-connection.dto';
+import type { CreateConnectionDto } from './dto/create-connection.dto';
 import type { UpdateNotesDto } from './dto/update-notes.dto';
 import { GetUser } from '../common/decorators/get-user.decorator';
 import type { User } from '../users/entities/user.entity';
@@ -25,10 +24,7 @@ export class ConnectionsController {
   ) {}
 
   @Post()
-  create(
-    @Body() createConnectionDto: CreateConnectionDto,
-    @GetUser() user: User,
-  ) {
+  create(createConnectionDto: CreateConnectionDto, @GetUser() user: User) {
     return this.connectionsService.create(createConnectionDto, user);
   }
 
@@ -37,9 +33,9 @@ export class ConnectionsController {
     return this.connectionsService.findAll(user);
   }
 
-  @Get('friends')
-  findFriends(@GetUser() user: User) {
-    return this.connectionsService.findFriends(user);
+  @Get('cards')
+  findConnectedCards(@GetUser() user: User) {
+    return this.connectionsService.findConnectedCards(user);
   }
 
   @Get(':id')
@@ -55,7 +51,7 @@ export class ConnectionsController {
   @Patch(':id/notes')
   updateNotes(
     @Param('id') id: string,
-    @Body() updateNotesDto: UpdateNotesDto,
+    updateNotesDto: UpdateNotesDto,
     @GetUser() user: User,
   ) {
     return this.connectionsService.updateNotes(id, updateNotesDto, user);

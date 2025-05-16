@@ -7,50 +7,50 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
+import { Card } from '../../cards/entities/card.entity';
 
 @Entity('connections')
 export class Connection {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // The first user in the connection
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'user1Id' })
-  user1: User;
+  // The first card in the connection
+  @ManyToOne(() => Card)
+  @JoinColumn({ name: 'card1Id' })
+  card1: Card;
 
   @Column()
-  user1Id: string;
+  card1Id: string;
 
-  // The second user in the connection
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'user2Id' })
-  user2: User;
+  // The second card in the connection
+  @ManyToOne(() => Card)
+  @JoinColumn({ name: 'card2Id' })
+  card2: Card;
 
   @Column()
-  user2Id: string;
+  card2Id: string;
 
-  // Notes from user1 about user2
+  // Notes from card1's owner about card2
   @Column({ nullable: true, default: null })
-  user1Notes: string;
+  card1Notes: string;
 
-  // Notes from user2 about user1
+  // Notes from card2's owner about card1
   @Column({ nullable: true, default: null })
-  user2Notes: string;
+  card2Notes: string;
 
-  // Whether user1 has favorited user2
+  // Whether card1's owner has favorited card2
   @Column({ default: false })
-  user1FavoritedUser2: boolean;
+  card1FavoritedCard2: boolean;
 
-  // Whether user2 has favorited user1
+  // Whether card2's owner has favorited card1
   @Column({ default: false })
-  user2FavoritedUser1: boolean;
+  card2FavoritedCard1: boolean;
 
   // The date when the connection was established
   @Column()
   connectionDate: Date;
 
-  // The date of the last interaction between the users
+  // The date of the last interaction between the cards
   @Column({ nullable: true, default: null })
   lastInteractionDate: Date;
 
