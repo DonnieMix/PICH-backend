@@ -4,12 +4,13 @@ import {
   InternalServerErrorException,
   Injectable,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import type { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import type { CreateUserDto } from './dto/create-user.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
+import type { PrivyUserDto } from '../auth/dto/privy-user.dto';
+import { InjectRepository } from '@nestjs/typeorm';
 
 // Define a more specific interface for Postgres errors
 interface PostgresError {
@@ -25,8 +26,7 @@ type PossibleError = Error | PostgresError;
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    @InjectRepository(User) private readonly usersRepository: Repository<User>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -42,13 +42,35 @@ export class UsersService {
       });
 
       // Save user to database
-      await this.usersRepository.save(user);
-
-      return user;
+      return await this.usersRepository.save(user);
     } catch (error) {
       // Type guard to check if error is a Postgres error
       if (this.isPostgresError(error) && error.code === '23505') {
         throw new ConflictException('Email already exists');
+      }
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async createWithPrivy(privyUserDto: PrivyUserDto): Promise<User> {
+    try {
+      // Create new user with Privy information, handling null values
+      const { walletAddress, ...restUserData } = privyUserDto;
+
+      const user = this.usersRepository.create({
+        ...restUserData,
+        // Convert null to undefined for walletAddress
+        walletAddress: walletAddress === null ? undefined : walletAddress,
+      });
+
+      // Save user to database - explicitly handle as a single entity
+      const savedUser = await this.usersRepository.save<User>(user);
+
+      return savedUser;
+    } catch (error) {
+      // Type guard to check if error is a Postgres error
+      if (this.isPostgresError(error) && error.code === '23505') {
+        throw new ConflictException('User already exists');
       }
       throw new InternalServerErrorException();
     }
@@ -90,6 +112,13 @@ export class UsersService {
     return user;
   }
 
+  async findByPrivyId(privyId: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: { privyId },
+      relations: ['cards'],
+    });
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.findOne(id);
 
@@ -101,9 +130,7 @@ export class UsersService {
 
     // Update user
     Object.assign(user, updateUserDto);
-    const updatedUser = await this.usersRepository.save(user);
-
-    return updatedUser;
+    return await this.usersRepository.save(user);
   }
 
   async setMainCard(userId: string, cardId: string): Promise<User> {
@@ -118,7 +145,7 @@ export class UsersService {
     }
 
     user.mainCardId = cardId;
-    return this.usersRepository.save(user);
+    return await this.usersRepository.save(user);
   }
 
   async remove(id: string): Promise<void> {

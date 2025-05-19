@@ -2,17 +2,22 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import * as QRCode from 'qrcode';
 import type { User } from '../users/entities/user.entity';
 import { CardsService } from '../cards/cards.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class QrService {
   constructor(
     @Inject(CardsService)
     private readonly cardsService: CardsService,
+    private readonly configService: ConfigService,
   ) {}
 
   async generateCardQR(cardId: string): Promise<string> {
     // Generate QR code for a specific card
-    const baseUrl = 'https://pich.app';
+    const baseUrl = this.configService.get<string>(
+      'FRONTEND_URL',
+      'https://pich.app',
+    );
     const connectUrl = `${baseUrl}/connect/card/${cardId}`;
 
     // Generate QR code as data URL
@@ -21,8 +26,8 @@ export class QrService {
       margin: 1,
       width: 300,
       color: {
-        dark: '#a39de8', // Using design token from Figma
-        light: '#FFFFFF', // White background
+        dark: '#000000',
+        light: '#FFFFFF',
       },
     });
   }

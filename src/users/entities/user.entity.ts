@@ -53,9 +53,12 @@ export class User {
   @Column({ default: 0 })
   tokenBalance: number;
 
-  @Column()
+  @Column({ nullable: true })
   @Exclude()
   password: string;
+
+  @Column({ nullable: true, unique: true })
+  privyId: string;
 
   @OneToMany(() => Card, (card) => card.user)
   cards: Card[];
