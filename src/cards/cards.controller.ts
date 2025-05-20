@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Post,
-  Body,
   Patch,
   Param,
   Delete,
@@ -14,29 +13,27 @@ import type { CreateCardDto } from './dto/create-card.dto';
 import type { UpdateCardDto } from './dto/update-card.dto';
 import { GetUser } from '../common/decorators/get-user.decorator';
 import type { User } from '../users/entities/user.entity';
-import { AuthGuard } from '@nestjs/passport';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { PrivyAuthGuard } from '../auth/guards/privy-auth.guard';
 
 @Controller('cards')
 export class CardsController {
   constructor(
-    @Inject(CardsService)
-    private readonly cardsService: CardsService,
+    @Inject(CardsService) private readonly cardsService: CardsService,
   ) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(PrivyAuthGuard)
   @Post()
-  create(@Body() createCardDto: CreateCardDto, @GetUser() user: User) {
+  create(createCardDto: CreateCardDto, @GetUser() user: User) {
     return this.cardsService.create(createCardDto, user);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(PrivyAuthGuard)
   @Get()
   findAll(@GetUser() user: User) {
     return this.cardsService.findAll(user);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(PrivyAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string, @GetUser() user: User) {
     return this.cardsService.findOne(id, user);
@@ -47,29 +44,29 @@ export class CardsController {
     return this.cardsService.findOnePublic(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(PrivyAuthGuard)
   @Patch(':id')
   update(
     @Param('id') id: string,
-    @Body() updateCardDto: UpdateCardDto,
+    updateCardDto: UpdateCardDto,
     @GetUser() user: User,
   ) {
     return this.cardsService.update(id, updateCardDto, user);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(PrivyAuthGuard)
   @Patch(':id/toggle-prime')
   togglePrime(@Param('id') id: string, @GetUser() user: User) {
     return this.cardsService.togglePrime(id, user);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(PrivyAuthGuard)
   @Patch(':id/toggle-wallet')
   toggleWallet(@Param('id') id: string, @GetUser() user: User) {
     return this.cardsService.toggleWallet(id, user);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(PrivyAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string, @GetUser() user: User) {
     return this.cardsService.remove(id, user);

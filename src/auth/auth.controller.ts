@@ -1,10 +1,14 @@
-import { Controller, Post, Get, UseGuards, Inject } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Headers,
+  UnauthorizedException,
+  Inject,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import type { LoginDto } from './dto/login.dto';
 import type { RegisterDto } from './dto/register.dto';
-import { PrivyAuthGuard } from './privy-auth.guard';
-import { GetUser } from '../common/decorators/get-user.decorator';
-import type { User } from '../users/entities/user.entity';
+import type { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -20,9 +24,15 @@ export class AuthController {
     return await this.authService.login(loginDto);
   }
 
-  @Get('privy/me')
-  @UseGuards(PrivyAuthGuard)
-  getPrivyProfile(@GetUser() user: User) {
-    return user;
+  @Get('me')
+  async getProfile(@Headers('authorization') authHeader: string) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException(
+        'Missing or invalid authorization header',
+      );
+    }
+
+    const token = authHeader.split(' ')[1];
+    return this.authService.verifyPrivyToken(token);
   }
 }

@@ -13,10 +13,10 @@ import type { CreateConnectionDto } from './dto/create-connection.dto';
 import type { UpdateNotesDto } from './dto/update-notes.dto';
 import { GetUser } from '../common/decorators/get-user.decorator';
 import type { User } from '../users/entities/user.entity';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { PrivyAuthGuard } from '../auth/guards/privy-auth.guard';
 
 @Controller('connections')
-@UseGuards(JwtAuthGuard)
+@UseGuards(PrivyAuthGuard)
 export class ConnectionsController {
   constructor(
     @Inject(ConnectionsService)

@@ -1,16 +1,13 @@
 import { Controller, Get, Inject, UseGuards } from '@nestjs/common';
 import { QrService } from './qr.service';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { PrivyAuthGuard } from '../auth/guards/privy-auth.guard';
 import { GetUser } from '../common/decorators/get-user.decorator';
 import type { User } from '../users/entities/user.entity';
 
 @Controller('qr')
-@UseGuards(JwtAuthGuard)
+@UseGuards(PrivyAuthGuard)
 export class QrController {
-  constructor(
-    @Inject(QrService)
-    private readonly qrService: QrService,
-  ) {}
+  constructor(@Inject(QrService) private readonly qrService: QrService) {}
 
   @Get('card/:cardId')
   generateCardQR(cardId: string): Promise<string> {
