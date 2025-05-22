@@ -55,7 +55,7 @@ export class User {
 
   @Column({ nullable: true })
   @Exclude()
-  password: string;
+  password?: string;
 
   @Column({ nullable: true, unique: true })
   privyId: string;

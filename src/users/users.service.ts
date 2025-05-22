@@ -29,16 +29,17 @@ export class UsersService {
     @InjectRepository(User) private readonly usersRepository: Repository<User>,
   ) {}
 
+  // This method is no longer needed as we're using Privy authentication
+  // Keeping it for backward compatibility but marking as deprecated
+  /**
+   * @deprecated Use createWithPrivy instead
+   */
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
-      // Hash the password
-      const salt = await bcrypt.genSalt();
-      const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
-
-      // Create new user
+      // Create new user without password
       const user = this.usersRepository.create({
         ...createUserDto,
-        password: hashedPassword,
+        // No password hashing as we're not using passwords anymore
       });
 
       // Save user to database

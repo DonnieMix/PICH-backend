@@ -1,11 +1,12 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  Logger,
+  Inject,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
-import type { LoginDto } from './dto/login.dto';
-import type { RegisterDto } from './dto/register.dto';
 import axios from 'axios';
-import { Logger } from '@nestjs/common';
 
 // Define interfaces for Privy API response
 interface PrivyWallet {
@@ -27,38 +28,10 @@ export class AuthService {
 
   constructor(
     @Inject(UsersService)
-    private usersService: UsersService,
+    private readonly usersService: UsersService,
     @Inject(ConfigService)
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
   ) {}
-
-  async register(registerDto: RegisterDto) {
-    // Create user (UsersService handles password hashing)
-    const user = await this.usersService.create(registerDto);
-
-    // Create a new object without the password
-    const { password: _unused, ...userWithoutPassword } = user;
-
-    return { user: userWithoutPassword };
-  }
-
-  async login(loginDto: LoginDto) {
-    const { email, password } = loginDto;
-
-    // Find user by email
-    const user = await this.usersService.findByEmail(email);
-
-    // Validate password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    // Create a new object without the password
-    const { password: _, ...userWithoutPassword } = user;
-
-    return { user: userWithoutPassword };
-  }
 
   async verifyPrivyToken(token: string) {
     try {

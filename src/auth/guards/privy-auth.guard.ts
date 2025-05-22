@@ -10,7 +10,7 @@ import type { Request } from 'express';
 
 @Injectable()
 export class PrivyAuthGuard implements CanActivate {
-  constructor(@Inject(AuthService) private authService: AuthService) {}
+  constructor(@Inject(AuthService) private readonly authService: AuthService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
