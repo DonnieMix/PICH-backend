@@ -17,6 +17,7 @@ export class QrController {
     return this.qrService.generateCardQR(cardId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('main-card')
   generateMainCardQR(@GetUser() user: User): Promise<string> {
     return this.qrService.generateMainCardQR(user);

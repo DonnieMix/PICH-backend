@@ -33,6 +33,7 @@ export class ConnectionsController {
     return this.connectionsService.findAll(user);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('cards')
   findConnectedCards(@GetUser() user: User) {
     return this.connectionsService.findConnectedCards(user);
