@@ -10,8 +10,8 @@ import {
   Inject,
 } from '@nestjs/common';
 import { CardsService } from './cards.service';
-import type { CreateCardDto } from './dto/create-card.dto';
-import type { UpdateCardDto } from './dto/update-card.dto';
+import { CreateCardDto } from './dto/create-card.dto';
+import { UpdateCardDto } from './dto/update-card.dto';
 import { GetUser } from '../common/decorators/get-user.decorator';
 import type { User } from '../users/entities/user.entity';
 import { AuthGuard } from '@nestjs/passport';
@@ -55,6 +55,12 @@ export class CardsController {
     @GetUser() user: User,
   ) {
     return this.cardsService.update(id, updateCardDto, user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/toggle-main')
+  toggleMainCard(@Param('id') id: string, @GetUser() user: User) {
+    return this.cardsService.toggleMainCard(id, user);
   }
 
   @UseGuards(JwtAuthGuard)

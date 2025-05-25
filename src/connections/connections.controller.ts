@@ -9,8 +9,8 @@ import {
   Inject,
 } from '@nestjs/common';
 import { ConnectionsService } from './connections.service';
-import type { CreateConnectionDto } from './dto/create-connection.dto';
-import type { UpdateNotesDto } from './dto/update-notes.dto';
+import { CreateConnectionDto } from './dto/create-connection.dto';
+import { UpdateNotesDto } from './dto/update-notes.dto';
 import { GetUser } from '../common/decorators/get-user.decorator';
 import type { User } from '../users/entities/user.entity';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';

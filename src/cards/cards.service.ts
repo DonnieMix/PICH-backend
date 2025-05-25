@@ -3,11 +3,11 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import type { Repository } from 'typeorm';
+import { In, Not, type Repository } from 'typeorm';
 import { Card } from './entities/card.entity';
 import type { CreateCardDto } from './dto/create-card.dto';
 import type { UpdateCardDto } from './dto/update-card.dto';
-import type { User } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
@@ -15,6 +15,8 @@ export class CardsService {
   constructor(
     @InjectRepository(Card)
     private readonly cardsRepository: Repository<Card>,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
   ) {}
 
   async create(createCardDto: CreateCardDto, user: User): Promise<Card> {
@@ -24,13 +26,46 @@ export class CardsService {
       userId: user.id,
     });
 
-    return this.cardsRepository.save(card);
+    const savedCard = await this.cardsRepository.save(card);
+
+    if (createCardDto.isMainCard) {
+      await this.handleMainCardUpdate(savedCard.id, user.id);
+    }
+
+    return savedCard;
+  }
+
+  private async handleMainCardUpdate(
+    currentCardId,
+    userId: string,
+  ): Promise<void> {
+    // Find all cards marked as main except the current one
+    const mainCards = await this.cardsRepository.find({
+      where: {
+        userId: userId,
+        isMainCard: true,
+        id: Not(currentCardId),
+      },
+    });
+
+    console.log(
+      `Found ${mainCards.length} cards currently marked as main:`,
+      mainCards.map((card) => card.id),
+    );
+
+    // Update all found cards to not be main
+    if (mainCards.length > 0) {
+      await this.cardsRepository.update(
+        { id: In(mainCards.map((card) => card.id)) },
+        { isMainCard: false },
+      );
+    }
   }
 
   async findAll(user: User): Promise<Card[]> {
     return this.cardsRepository.find({
       where: { userId: user.id },
-      order: { updatedAt: 'DESC' },
+      order: { createdAt: 'DESC' },
     });
   }
 
@@ -79,10 +114,50 @@ export class CardsService {
     user: User,
   ): Promise<Card> {
     const card = await this.findOne(id, user);
+    const isBecomingMainCard =
+      updateCardDto.isMainCard === true && !card.isMainCard;
 
     Object.assign(card, updateCardDto);
 
-    return this.cardsRepository.save(card);
+    const updatedCard = await this.cardsRepository.save(card);
+
+    if (isBecomingMainCard) {
+      await this.handleMainCardUpdate(id, user.id);
+
+      // Also update the user's mainCardId
+      if (user.mainCardId !== id) {
+        user.mainCardId = id;
+        await this.usersRepository.save(user);
+      }
+    }
+
+    return updatedCard;
+  }
+
+  async toggleMainCard(id: string, user: User): Promise<Card> {
+    const card = await this.findOne(id, user);
+
+    // If the card is already the main card, do nothing
+    if (card.isMainCard) {
+      return card;
+    }
+
+    // Set this card as the main card
+    card.isMainCard = true;
+
+    // Save the updated card
+    const updatedCard = await this.cardsRepository.save(card);
+
+    // Update any other main cards
+    await this.handleMainCardUpdate(id, user.id);
+
+    // Also update the user's mainCardId
+    if (user.mainCardId !== id) {
+      user.mainCardId = id;
+      await this.usersRepository.save(user);
+    }
+
+    return updatedCard;
   }
 
   async togglePrime(id: string, user: User): Promise<Card> {

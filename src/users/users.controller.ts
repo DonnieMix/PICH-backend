@@ -10,8 +10,8 @@ import {
   Inject,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import type { CreateUserDto } from './dto/create-user.dto';
-import type { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { GetUser } from '../common/decorators/get-user.decorator';
 import type { User } from './entities/user.entity';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';

@@ -12,8 +12,7 @@ export class QrService {
 
   async generateCardQR(cardId: string): Promise<string> {
     // Generate QR code for a specific card
-    const baseUrl = 'https://pich.app';
-    const connectUrl = `${baseUrl}/connect/card/${cardId}`;
+    const connectUrl = `pich://connect/${cardId}`;
 
     // Generate QR code as data URL
     return QRCode.toDataURL(connectUrl, {
@@ -21,7 +20,7 @@ export class QrService {
       margin: 1,
       width: 300,
       color: {
-        dark: '#a39de8', // Using design token from Figma
+        dark: '#000000', // Using design token from Figma
         light: '#FFFFFF', // White background
       },
     });
