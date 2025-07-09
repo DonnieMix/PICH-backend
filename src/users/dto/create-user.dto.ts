@@ -29,6 +29,10 @@ export class CreateUserDto {
 
   @IsString()
   @MinLength(8)
-  @IsNotEmpty()
-  password: string;
+  @IsOptional()
+  password?: string;
+
+  @IsString()
+  @IsOptional()
+  privyId?: string;
 }

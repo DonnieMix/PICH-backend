@@ -7,6 +7,8 @@ config();
 
 const configService = new ConfigService();
 
+console.log('DB_HOST', configService.get('DB_HOST'));
+
 export default new DataSource({
   type: 'postgres',
   host: configService.get('DB_HOST', 'localhost'),

@@ -33,7 +33,8 @@ export class UsersService {
     try {
       // Hash the password
       const salt = await bcrypt.genSalt();
-      const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
+      const hashedPassword =
+        createUserDto.password && (await bcrypt.hash(createUserDto.password, salt));
 
       // Create new user
       const user = this.usersRepository.create({
@@ -87,6 +88,15 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with email "${email}" not found`);
     }
+    return user;
+  }
+
+  async findByPrivyId(privyId: string): Promise<User | null> {
+    const user = await this.usersRepository.findOne({
+      where: { privyId },
+      relations: ['cards'],
+    });
+    
     return user;
   }
 

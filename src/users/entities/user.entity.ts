@@ -50,10 +50,13 @@ export class User {
   @Column({ nullable: true })
   walletAddress: string;
 
+  @Column({ nullable: true })
+  privyId: string;
+
   @Column({ default: 0 })
   tokenBalance: number;
 
-  @Column()
+  @Column({ nullable: true })
   @Exclude()
   password: string;
 

@@ -8,6 +8,7 @@ import { CardsModule } from './cards/cards.module';
 import { ConnectionsModule } from './connections/connections.module';
 import { QrModule } from './qr/qr.module';
 import { AuthModule } from './auth/auth.module';
+import { PrivyModule } from './privy/privy.module';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { AuthModule } from './auth/auth.module';
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.get('DB_HOST', 'localhost'),
-        port: configService.get<number>('DB_PORT', 5432),
+        port: configService.get<number>('DB_PORT', 5433),
         username: configService.get('DB_USERNAME', 'postgres'),
         password: configService.get('DB_PASSWORD', 'postgres'),
         database: configService.get('DB_DATABASE', 'pich'),
@@ -39,6 +40,7 @@ import { AuthModule } from './auth/auth.module';
     ConnectionsModule,
     QrModule,
     AuthModule,
+    PrivyModule,
   ],
   controllers: [AppController],
   providers: [AppService],
