@@ -20,7 +20,7 @@ async function bootstrap() {
   // Global prefix for all routes
   app.setGlobalPrefix('api');
 
-  await app.listen(3000);
+  await app.listen(3003);
   console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();
